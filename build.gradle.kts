@@ -1,9 +1,15 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.time.LocalDateTime
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.OutputStream
+import java.util.*
 
 val googleGsonVersion: String by project
 val kotlinxHtmlJsVersion: String by project
 val kotlinxSerializationJsonVersion: String by project
+val projectVersion: String by project
 
 plugins {
     kotlin("jvm") version "1.6.21"
@@ -11,7 +17,6 @@ plugins {
 }
 
 group = "org.example"
-version = "0.0.0"
 
 repositories {
     mavenCentral()
@@ -31,11 +36,21 @@ tasks.register("printHelloWorld") {
 }
 
 tasks.register("incrementPatchInVersion") {
-    val version = project.version.toString()
-
-    val (major, minor, patch) = version.split(".").map(String::toInt)
+    val (major, minor, patch) = projectVersion.split(".").map(String::toInt)
     val newVersion = "$major.$minor.${patch + 1}"
-    println("old version = $version")
+
+    val file = File("gradle.properties")
+    val props = Properties()
+
+    FileInputStream(file).use {
+        props.load(it)
+        props.setProperty("projectVersion", newVersion)
+
+        val out: OutputStream = FileOutputStream(file)
+        props.store(out, "change projectVersion")
+    }
+
+    println("old version = $projectVersion")
     println("new version = $newVersion")
 }
 
